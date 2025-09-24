@@ -9,10 +9,10 @@ import os
 from typing import Any
 
 import ccxt
-from mcp import server, StdioServerParameters
+from mcp.server import InitializationOptions
+from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent, ListToolsResult
-from mcp.server import Server
 
 # 从环境变量或配置文件加载你的 OKX API 凭证
 api_key = os.getenv('OKX_API_KEY')
@@ -75,12 +75,12 @@ def get_kline_data(symbol: str, timeframe: str = '1h', limit: int = 100) -> list
         ]
         return formatted_data
     except Exception as e:
-        return {"error": str(e)}
+        return [{"error": str(e)}]
 
 
-async def serve(server: server) -> None:
+async def serve(srv: Server) -> None:
     # 注册工具
-    @server.list_tools()
+    @srv.list_tools()
     async def list_tools() -> ListToolsResult:
         return ListToolsResult(
             tools=[
@@ -125,34 +125,37 @@ async def serve(server: server) -> None:
             ]
         )
 
-    @server.call_tool()
+    @srv.call_tool()
     async def call_tool(name: str, arguments: dict[str, Any] | None) -> list[TextContent]:
-        if name == "get_crypto_price":
-            result = get_crypto_price(arguments["symbol"])
-            return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False))]
-        elif name == "get_kline_data":
-            result = get_kline_data(
-                arguments["symbol"],
-                arguments.get("timeframe", "1h"),
-                arguments.get("limit", 100)
-            )
-            return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False))]
-        else:
-            raise ValueError(f"Unknown tool: {name}")
+        try:
+            if name == "get_crypto_price":
+                result = get_crypto_price(arguments["symbol"])
+                return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False))]
+            elif name == "get_kline_data":
+                result = get_kline_data(
+                    arguments["symbol"],
+                    arguments.get("timeframe", "1h"),
+                    arguments.get("limit", 100)
+                )
+                return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False))]
+            else:
+                raise ValueError(f"Unknown tool: {name}")
+        except Exception as e:
+            # 确保即使在错误情况下也返回正确的类型
+            error_result = {"error": str(e)}
+            return [TextContent(type="text", text=json.dumps(error_result, ensure_ascii=False))]
 
 
 async def main():
     # 创建 MCP 服务器实例
     async with stdio_server() as (read_stream, write_stream):
-        server = Server(name="okx-mcp-server")
-        await serve(server)
-        async with server.run(
+        srv = Server(name="okx-mcp-server")
+        await serve(srv)
+        async with srv.run(
                 read_stream, write_stream,
-                StdioServerParameters(
-                    capture_stderr=False,
-                    cwd=os.getcwd(),
-                )
-        ):
+                InitializationOptions(
+                    server_name="okx-mcp-server"
+                )):
             pass
 
 
