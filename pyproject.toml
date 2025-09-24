@@ -1,0 +1,20 @@
+[project]
+name = "okx-agent"
+version = "0.1.0"
+description = "OKX Crypto Price Analysis Agent using AgentScope and MCP"
+authors = [
+    { name = "LFlops", email = "glide_nether0x@icloud.com" },
+]
+requires-python = ">=3.12"
+dependencies = [
+    "agentscope>=1.0.3",
+    "ccxt>=4.5.5",
+]
+
+[project.scripts]
+okx-server = "okx_mcp_server:main"
+okx-agent = "main:main"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
