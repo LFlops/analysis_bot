@@ -1,6 +1,18 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+OKX MCP Server implementation
+"""
+import asyncio
+import json
 import os
+from typing import Any
+
 import ccxt
-from agentscope.mcp import McpServer
+from mcp import server, StdioServerParameters
+from mcp.server.stdio import stdio_server
+from mcp.types import Tool, TextContent, ListToolsResult
+from mcp.server import Server
 
 # 从环境变量或配置文件加载你的 OKX API 凭证
 api_key = os.getenv('OKX_API_KEY')
@@ -11,11 +23,12 @@ passphrase = os.getenv('OKX_API_PASSPHRASE')
 okx = ccxt.okx({
     'apiKey': api_key,
     'secret': secret_key,
-    'password': passphrase, # ccxt中password对应passphrase
+    'password': passphrase,  # ccxt中password对应passphrase
     'options': {
-        'defaultType': 'spot', # 默认为现货交易
+        'defaultType': 'spot',  # 默认为现货交易
     }
 })
+
 
 def get_crypto_price(symbol: str) -> dict:
     """
@@ -40,6 +53,7 @@ def get_crypto_price(symbol: str) -> dict:
     except Exception as e:
         return {"error": str(e)}
 
+
 def get_kline_data(symbol: str, timeframe: str = '1h', limit: int = 100) -> list:
     """
     获取指定交易对的 K 线数据。
@@ -63,12 +77,84 @@ def get_kline_data(symbol: str, timeframe: str = '1h', limit: int = 100) -> list
     except Exception as e:
         return {"error": str(e)}
 
-if __name__ == "__main__":
+
+async def serve(server: server) -> None:
+    # 注册工具
+    @server.list_tools()
+    async def list_tools() -> ListToolsResult:
+        return ListToolsResult(
+            tools=[
+                Tool(
+                    name="get_crypto_price",
+                    description="获取指定交易对的最新价格",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "symbol": {
+                                "type": "string",
+                                "description": "交易对，如 'BTC/USDT'"
+                            }
+                        },
+                        "required": ["symbol"]
+                    }
+                ),
+                Tool(
+                    name="get_kline_data",
+                    description="获取指定交易对的 K 线数据",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "symbol": {
+                                "type": "string",
+                                "description": "交易对，如 'BTC/USDT'"
+                            },
+                            "timeframe": {
+                                "type": "string",
+                                "description": "时间周期，如 '1h' (1小时), '1d' (1天)",
+                                "default": "1h"
+                            },
+                            "limit": {
+                                "type": "number",
+                                "description": "返回的 K 线数量",
+                                "default": 100
+                            }
+                        },
+                        "required": ["symbol"]
+                    }
+                )
+            ]
+        )
+
+    @server.call_tool()
+    async def call_tool(name: str, arguments: dict[str, Any] | None) -> list[TextContent]:
+        if name == "get_crypto_price":
+            result = get_crypto_price(arguments["symbol"])
+            return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False))]
+        elif name == "get_kline_data":
+            result = get_kline_data(
+                arguments["symbol"],
+                arguments.get("timeframe", "1h"),
+                arguments.get("limit", 100)
+            )
+            return [TextContent(type="text", text=json.dumps(result, ensure_ascii=False))]
+        else:
+            raise ValueError(f"Unknown tool: {name}")
+
+
+async def main():
     # 创建 MCP 服务器实例
-    server = McpServer(
-        host="127.0.0.1",
-        port=5000,
-        tool_functions=[get_crypto_price, get_kline_data]
-    )
-    # 启动 MCP 服务器
-    server.run()
+    async with stdio_server() as (read_stream, write_stream):
+        server = Server(name="okx-mcp-server")
+        await serve(server)
+        async with server.run(
+                read_stream, write_stream,
+                StdioServerParameters(
+                    capture_stderr=False,
+                    cwd=os.getcwd(),
+                )
+        ):
+            pass
+
+
+if __name__ == "__main__":
+    asyncio.run(main())
