@@ -14,7 +14,7 @@ from dotenv import load_dotenv
 from mcp.server import InitializationOptions
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
-from mcp.types import Tool, TextContent, ListToolsResult
+from mcp.types import Tool, TextContent, ListToolsResult, ServerCapabilities
 
 load_dotenv()
 # 从环境变量或配置文件加载你的 OKX API 凭证
@@ -166,12 +166,12 @@ async def main():
         srv = Server(name="okx-mcp-server")
         await serve(srv)
         await srv.run(
-                read_stream, write_stream,
-                InitializationOptions(
-                    server_name="okx-mcp-server",
-                    server_version="0.1.0",
-                    capabilities={},
-                ))
+            read_stream, write_stream,
+            InitializationOptions(
+                server_name="okx-mcp-server",
+                server_version="0.1.0",
+                capabilities=ServerCapabilities(),
+            ))
 
 
 if __name__ == "__main__":

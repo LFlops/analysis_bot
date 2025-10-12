@@ -17,7 +17,7 @@ RUN uv pip sync --system pyproject.toml
 COPY . .
 
 # Build the wheel
-RUN uv build --out /wheels
+RUN uv build --out-dir /wheels
 
 
 # Stage 2: Create the final, clean production image
