@@ -8,3 +8,8 @@ __pycache__/
 
 # mac
 .DS_Store
+
+# sensitive message
+.env
+
+#

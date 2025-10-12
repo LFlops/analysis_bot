@@ -9,6 +9,7 @@ requires-python = ">=3.12"
 dependencies = [
     "agentscope>=1.0.3",
     "ccxt>=4.5.5",
+    "dashscope>=1.16.1",
 ]
 
 [project.scripts]
@@ -21,7 +22,7 @@ build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
 # 明确告诉 setuptools 在 src 目录下查找包
-package-dir = {"" = "src"}
+package-dir = { "" = "src" }
 # 明确告诉 setuptools 不要在顶层查找任何模块，只找包
 py-modules = []
 packages = [""]
