@@ -151,12 +151,13 @@ async def main():
     async with stdio_server() as (read_stream, write_stream):
         srv = Server(name="okx-mcp-server")
         await serve(srv)
-        async with srv.run(
+        await srv.run(
                 read_stream, write_stream,
                 InitializationOptions(
-                    server_name="okx-mcp-server"
-                )):
-            pass
+                    server_name="okx-mcp-server",
+                    server_version="0.1.0",
+                    capabilities={},
+                ))
 
 
 if __name__ == "__main__":
