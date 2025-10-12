@@ -6,18 +6,32 @@ OKX MCP Server implementation
 import asyncio
 import json
 import os
+import sys
 from typing import Any
 
 import ccxt
+from dotenv import load_dotenv
 from mcp.server import InitializationOptions
 from mcp.server import Server
 from mcp.server.stdio import stdio_server
 from mcp.types import Tool, TextContent, ListToolsResult
 
+load_dotenv()
 # 从环境变量或配置文件加载你的 OKX API 凭证
 api_key = os.getenv('OKX_API_KEY')
 secret_key = os.getenv('OKX_API_SECRET')
 passphrase = os.getenv('OKX_API_PASSPHRASE')
+print(api_key, secret_key, passphrase)
+
+# --- 启动前检查环境变量 ---
+if not all([api_key, secret_key, passphrase]):
+    print(
+        "错误: 缺少必要的OKX环境变量。请确保 "
+        "OKX_API_KEY, OKX_API_SECRET, 和 OKX_API_PASSPHRASE "
+        "都已在 .env 文件中正确设置。",
+        file=sys.stderr
+    )
+    sys.exit(1)
 
 # 初始化 OKX 交易所客户端
 okx = ccxt.okx({
