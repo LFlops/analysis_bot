@@ -96,48 +96,47 @@ async def serve(srv: Server) -> None:
     # 注册工具
     @srv.list_tools()
     async def list_tools() -> ListToolsResult:
-        return ListToolsResult(
-            tools=[
-                Tool(
-                    name="get_crypto_price",
-                    description="获取指定交易对的最新价格",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "symbol": {
-                                "type": "string",
-                                "description": "交易对，如 'BTC/USDT'"
-                            }
+        tools = [
+            Tool(
+                name="get_crypto_price",
+                description="获取指定交易对的最新价格",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "symbol": {
+                            "type": "string",
+                            "description": "交易对，如 'BTC/USDT'"
+                        }
+                    },
+                    "required": ["symbol"]
+                }
+            ),
+            Tool(
+                name="get_kline_data",
+                description="获取指定交易对的 K 线数据",
+                inputSchema={
+                    "type": "object",
+                    "properties": {
+                        "symbol": {
+                            "type": "string",
+                            "description": "交易对，如 'BTC/USDT'"
                         },
-                        "required": ["symbol"]
-                    }
-                ),
-                Tool(
-                    name="get_kline_data",
-                    description="获取指定交易对的 K 线数据",
-                    inputSchema={
-                        "type": "object",
-                        "properties": {
-                            "symbol": {
-                                "type": "string",
-                                "description": "交易对，如 'BTC/USDT'"
-                            },
-                            "timeframe": {
-                                "type": "string",
-                                "description": "时间周期，如 '1h' (1小时), '1d' (1天)",
-                                "default": "1h"
-                            },
-                            "limit": {
-                                "type": "number",
-                                "description": "返回的 K 线数量",
-                                "default": 100
-                            }
+                        "timeframe": {
+                            "type": "string",
+                            "description": "时间周期，如 '1h' (1小时), '1d' (1天)",
+                            "default": "1h"
                         },
-                        "required": ["symbol"]
-                    }
-                )
-            ]
-        )
+                        "limit": {
+                            "type": "number",
+                            "description": "返回的 K 线数量",
+                            "default": 100
+                        }
+                    },
+                    "required": ["symbol"]
+                }
+            )
+        ]
+        return ListToolsResult(tools=tools)
 
     @srv.call_tool()
     async def call_tool(name: str, arguments: dict[str, Any] | None) -> list[TextContent]:

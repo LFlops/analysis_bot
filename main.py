@@ -6,6 +6,7 @@ from agentscope.mcp import StdIOStatefulClient
 from agentscope.model import DashScopeChatModel, OpenAIChatModel
 from agentscope.tool import Toolkit
 from agentscope.formatter import DashScopeChatFormatter, OpenAIChatFormatter
+from agentscope.message import Msg
 
 # 初始化 AgentScope
 agentscope.init(project="okx-agent")
@@ -71,7 +72,15 @@ async def main():
         # Agent 开始执行任务
         try:
             response = await analyst_agent(prompt)
-            print("Agent 的分析结果：\n", response.content)
+            # 处理可能的不同类型响应
+            if isinstance(response, Msg):
+                print("Agent 的分析结果：\n", response.content)
+            elif isinstance(response, str):
+                print("Agent 的分析结果：\n", response)
+            elif hasattr(response, 'content'):
+                print("Agent 的分析结果：\n", response.content)
+            else:
+                print("Agent 的分析结果：\n", str(response))
         except Exception as e:
             print(f"分析过程中出现错误: {e}")
     
