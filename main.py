@@ -18,7 +18,6 @@ if MODEL_PROVIDER == "dashscope":
     model = DashScopeChatModel(
         model_name="qwen-turbo",
         api_key=os.getenv("DASHSCOPE_API_KEY"),
-        temperature=0.5,
     )
     formatter = DashScopeChatFormatter()
     print("Using DashScope (Tongyi Qianwen) model.")
@@ -56,13 +55,13 @@ async def main():
     # 创建一个 Agent，并为其配备工具
     # ReActAgent 是一个很好的选择，因为它能够进行"思考-行动-观察"循环
     # 从而决定何时以及如何调用工具
-analyst_agent = ReActAgent(
-        name="CryptoAnalyst",
-        sys_prompt="你是一个专业的加密货币市场分析师，能够使用工具获取实时的币价和历史K线数据。请根据用户需求进行分析和报告。如果你需要价格数据，请调用 get_crypto_price 工具。如果你需要历史数据来分析趋势，请调用 get_kline_data 工具。",
-        model=model,
-        formatter=formatter,
-        toolkit=toolkit,
-    )
+    analyst_agent = ReActAgent(
+            name="CryptoAnalyst",
+            sys_prompt="你是一个专业的加密货币市场分析师，能够使用工具获取实时的币价和历史K线数据。请根据用户需求进行分析和报告。如果你需要价格数据，请调用 get_crypto_price 工具。如果你需要历史数据来分析趋势，请调用 get_kline_data 工具。",
+            model=model,
+            formatter=formatter,
+            toolkit=toolkit,
+        )
     # 启动对话
     while True:
         prompt = input("请输入你的分析需求（例如：分析一下 BTC/USDT 最近一小时的价格走势，输入 'exit' 退出）：")

@@ -11,7 +11,7 @@ WORKDIR /app
 COPY pyproject.toml uv.lock ./
 
 # Install dependencies
-RUN uv pip sync pyproject.toml
+RUN uv pip sync --system pyproject.toml
 
 # Copy the rest of the application source code
 COPY . .
@@ -34,7 +34,7 @@ COPY --from=builder /wheels/*.whl .
 
 # Install the application from the wheel
 # This also installs its dependencies as defined in the wheel
-RUN uv pip install *.whl
+RUN uv pip install --system *.whl
 
 # Set default environment variables.
 # These can be overridden at runtime (e.g., with `docker run -e ...`)
