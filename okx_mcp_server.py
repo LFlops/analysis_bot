@@ -21,7 +21,6 @@ load_dotenv()
 api_key = os.getenv('OKX_API_KEY')
 secret_key = os.getenv('OKX_API_SECRET')
 passphrase = os.getenv('OKX_API_PASSPHRASE')
-print(api_key, secret_key, passphrase)
 
 # --- 启动前检查环境变量 ---
 if not all([api_key, secret_key, passphrase]):
