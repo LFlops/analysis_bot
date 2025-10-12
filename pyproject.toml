@@ -21,8 +21,7 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-# 明确告诉 setuptools 在 src 目录下查找包
-package-dir = { "" = "src" }
-# 明确告诉 setuptools 不要在顶层查找任何模块，只找包
-py-modules = []
-packages = [""]
+
+# 声明项目包含的顶级 Python 模块
+
+py-modules = ["main", "okx_mcp_server"]
